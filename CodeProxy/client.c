@@ -1,116 +1,81 @@
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include  <stdio.h>
+#include  <unistd.h>
+#include  <sys/socket.h>
+#include  <netdb.h>
+#include  <string.h>
+#include  <stdlib.h>
+#include  <stdbool.h>
 
 #define MAXHOSTLEN 64
 #define MAXPORTLEN 6
 #define MAXBUFFERLEN 1024
 
-int main(int argc, char* argv[]) {
-    int descSock;                  // Descripteur de la socket
-    int ecode;                     // Retour des fonctions
-    struct addrinfo *res,*resPtr;  // Résultat de la fonction getaddrinfo
-    struct addrinfo hints;
-    char serverName[MAXHOSTLEN];   // Nom de la machine serveur
-    char serverPort[MAXPORTLEN];   // Numéro de port
-    char buffer[MAXBUFFERLEN];     // Buffer stockant les messages entre
+int main(int argc, char* argv[]){
+	int descSock;                  // Descripteur de la socket
+	int ecode;                     // Retour des fonctions
+	struct addrinfo *res,*resPtr;  // Résultat de la fonction getaddrinfo
+	struct addrinfo hints;
+	char serverName[MAXHOSTLEN];   // Nom de la machine serveur
+	char serverPort[MAXPORTLEN];   // Numéro de port
+	char buffer[MAXBUFFERLEN];     // Buffer stockant les messages entre
                                   // le client et le serveur
-    bool isConnected = false;      // booléen indiquant que l'on est bien connecté
+	bool isConnected = false;      // booléen indiquant que l'on est bien connecté
 
-    // On teste les valeurs rentrées par l'utilisateur
-    if (argc != 3) {
-        perror("Mauvaise utilisation de la commande: <nom serveur> <numero de port>\n");
-        exit(1);
-    }
-    if (strlen(argv[1]) >= MAXHOSTLEN) {
-        perror("Le nom de la machine serveur est trop long\n");
-        exit(2);
-    }
-    if (strlen(argv[2]) >= MAXPORTLEN) {
-        perror("Le numero de port du serveur est trop long\n");
-        exit(2);
-    }
+    //On teste les valeurs rentrées par l'utilisateur
+    if (argc != 3){ perror("Mauvaise utilisation de la commande: <nom serveur> <numero de port>\n"); exit(1);}
+    if (strlen(argv[1]) >= MAXHOSTLEN){ perror("Le nom de la machine serveur est trop long\n"); exit(2);}
+    if (strlen(argv[2]) >= MAXPORTLEN){ perror("Le numero de port du serveur est trop long\n"); exit(2);}
     strncpy(serverName, argv[1], MAXHOSTLEN);
-    serverName[MAXHOSTLEN - 1] = '\0';
+    serverName[MAXHOSTLEN-1] = '\0';
     strncpy(serverPort, argv[2], MAXPORTLEN);
-    serverPort[MAXPORTLEN - 1] = '\0';
+    serverPort[MAXPORTLEN-1] = '\0';
 
-    // Initialisation de hints
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_socktype = SOCK_STREAM;  // TCP
-    hints.ai_family = AF_UNSPEC;      // les adresses IPv4 et IPv6 seront présentées par
-                                      // la fonction getaddrinfo
 
-    // Récupération des informations sur le serveur
-    ecode = getaddrinfo(serverName, serverPort, &hints, &res);
-    if (ecode) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(ecode));
-        exit(1);
-    }
 
-    resPtr = res;
+    // Initailisation de hints
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_socktype = SOCK_STREAM;  // TCP
+	hints.ai_family = AF_UNSPEC;      // les adresses IPv4 et IPv6 seront présentées par
+				                          // la fonction getaddrinfo
 
-    while (!isConnected && resPtr != NULL) {
-        // Création de la socket IPv4/TCP
-        descSock = socket(resPtr->ai_family, resPtr->ai_socktype, resPtr->ai_protocol);
-        if (descSock == -1) {
-            perror("Erreur création socket");
-            exit(2);
-        }
+	//Récupération des informations sur le serveur
+	ecode = getaddrinfo(serverName,serverPort,&hints,&res);
+	if (ecode){
+		fprintf(stderr,"getaddrinfo: %s\n", gai_strerror(ecode));
+		exit(1);
+	}
 
-        // Connexion au serveur
-        ecode = connect(descSock, resPtr->ai_addr, resPtr->ai_addrlen);
-        if (ecode == -1) {
-            resPtr = resPtr->ai_next;
-            close(descSock);
-        } else {
-            isConnected = true;
-        }
-    }
-    freeaddrinfo(res);
-    if (!isConnected) {
-        perror("Connexion impossible");
-        exit(2);
-    }
+	resPtr = res;
 
-    // Lecture du message de bienvenue du serveur
-    ecode = read(descSock, buffer, MAXBUFFERLEN);
-    if (ecode == -1) {
-        perror("Problème de lecture");
-        exit(3);
-    }
-    buffer[ecode] = '\0';
-    printf("MESSAGE RECU DU SERVEUR: \"%s\".\n", buffer);
+	while(!isConnected && resPtr!=NULL){
 
-    // Permettre à l'utilisateur d'envoyer des commandes FTP
-    while (1) {
-        printf("Entrez une commande FTP: ");
-        fgets(buffer, MAXBUFFERLEN, stdin);
-        // Supprimer le retour à la ligne (\n) si présent
-        buffer[strcspn(buffer, "\n")] = 0;
+		//Création de la socket IPv4/TCP
+		descSock = socket(resPtr->ai_family, resPtr->ai_socktype, resPtr->ai_protocol);
+		if (descSock == -1) {
+			perror("Erreur creation socket");
+			exit(2);
+		}
 
-        // Si l'utilisateur tape "exit", fermer la connexion
-        if (strncmp(buffer, "exit", 4) == 0) {
-            break;
-        }
-
-        // Envoi de la commande au serveur
-        write(descSock, buffer, strlen(buffer));
-        // Lire la réponse du serveur
-        ecode = read(descSock, buffer, MAXBUFFERLEN);
-        if (ecode == -1) {
-            perror("Erreur lecture du serveur");
-            break;
-        }
-        buffer[ecode] = '\0';
-        printf("Réponse du serveur : %s\n", buffer);
-    }
-
-    // Fermeture de la socket
-    close(descSock);
-    printf("Déconnexion du serveur.\n");
+  		//Connexion au serveur
+		ecode = connect(descSock, resPtr->ai_addr, resPtr->ai_addrlen);
+		if (ecode == -1) {
+			resPtr = resPtr->ai_next;
+			close(descSock);
+		}
+		// On a pu se connecté
+		else isConnected = true;
+	}
+	freeaddrinfo(res);
+	if (!isConnected){
+		perror("Connexion impossible");
+		exit(2);
+	}
+	//Echange de donneés avec le serveur
+	ecode = read(descSock, buffer, MAXBUFFERLEN);
+	if (ecode == -1) {perror("Problème de lecture\n"); exit(3);}
+	buffer[ecode] = '\0';
+	printf("MESSAGE RECU DU SERVEUR: \"%s\".\n",buffer);
+	//Fermeture de la socket
+	close(descSock);
 }
+
