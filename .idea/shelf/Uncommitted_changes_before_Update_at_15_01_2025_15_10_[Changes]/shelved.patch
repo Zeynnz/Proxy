@@ -1,0 +1,17 @@
+Index: CMakeLists.txt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>cmake_minimum_required(VERSION 3.15)\r\nproject(Proxy C)\r\n\r\n# Set the C standard\r\nset(CMAKE_C_STANDARD 11)\r\n\r\n# Create a library for simpleSocketAPI\r\nadd_library(apisocket simpleSocketAPI.c\r\n        serveur.c)\r\n\r\n# Create an executable target for the proxy\r\nadd_executable(proxy\r\n        proxy.c\r\n        proxyAPI.c\r\n        proxyAPI.h\r\n)\r\n\r\n# Ajout du serveur\r\nadd_executable(serveur serveur.c simpleSocketAPI.c)\r\n\r\n# Ajout du client\r\nadd_executable(client client.c simpleSocketAPI.c)\r\n\r\n# Link the apisocket library to the proxy executable\r\ntarget_link_libraries(proxy PRIVATE apisocket)\r\n
+===================================================================
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+--- a/CMakeLists.txt	(revision a1e846bdb7583e0b5c684a7ed15f28362e2452dc)
++++ b/CMakeLists.txt	(date 1736950154977)
+@@ -11,7 +11,7 @@
+ # Create an executable target for the proxy
+ add_executable(proxy
+         proxy.c
+-        proxyAPI.c
++        proxyAPI.cdzd
+         proxyAPI.h
+ )
+ 
