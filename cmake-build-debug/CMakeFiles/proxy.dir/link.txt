@@ -1,1 +1,0 @@
-/usr/bin/cc -g CMakeFiles/proxy.dir/CodeProxy/proxy.c.o CMakeFiles/proxy.dir/CodeProxy/proxyAPI.c.o -o proxy  libapisocket.a 
