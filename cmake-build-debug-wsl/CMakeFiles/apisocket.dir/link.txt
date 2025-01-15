@@ -1,2 +1,0 @@
-/usr/bin/ar qc libapisocket.a CMakeFiles/apisocket.dir/CodeProxy/simpleSocketAPI.c.o CMakeFiles/apisocket.dir/CodeProxy/serveur.c.o
-/usr/bin/ranlib libapisocket.a

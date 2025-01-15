@@ -1,1 +1,0 @@
-/usr/bin/cc -g CMakeFiles/serveur.dir/CodeProxy/serveur.c.o CMakeFiles/serveur.dir/CodeProxy/simpleSocketAPI.c.o -o serveur 
